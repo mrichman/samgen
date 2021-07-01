@@ -3,7 +3,10 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/awslabs/goformation/v5/cloudformation"
+	"github.com/awslabs/goformation/v5/cloudformation/serverless"
 	"github.com/getkin/kin-openapi/openapi3"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -35,12 +38,28 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			panic(err)
 		}
+
+		// Create a new CloudFormation template
+		template := cloudformation.NewTemplate()
+
 		for key, pathItem := range doc.Paths {
 			fmt.Println("Key:", key)
 			for verb, operation := range pathItem.Operations() {
 				fmt.Println("Verb:", verb,"=>", "OperationID:", operation.OperationID)
+
+				template.Resources[strings.Title(operation.OperationID) + "Function"] = &serverless.Function{
+					Description: operation.Description, FunctionName: strings.Title(operation.OperationID),
+				}
+				
 			}
-	}
+		}
+		// Output the YAML AWS CloudFormation template
+		y, err := template.YAML()
+		if err != nil {
+			fmt.Printf("Failed to generate YAML: %s\n", err)
+		} else {
+			fmt.Printf("%s\n", string(y))
+		}
 	},
 }
 
