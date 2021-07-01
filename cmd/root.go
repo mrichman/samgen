@@ -6,11 +6,12 @@ import (
 	"strings"
 
 	"github.com/awslabs/goformation/v5/cloudformation"
-	"github.com/awslabs/goformation/v5/cloudformation/serverless"
 	"github.com/getkin/kin-openapi/openapi3"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/mrichman/samgen/util"
 )
 
 var cfgFile string
@@ -28,7 +29,7 @@ to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("root called")
+		// fmt.Println("root called")
 		loader := openapi3.NewLoader()
 		doc, err := loader.LoadFromFile("examples/petstore.yaml")
 		if err != nil {
@@ -41,16 +42,17 @@ to quickly create a Cobra application.`,
 
 		// Create a new CloudFormation template
 		template := cloudformation.NewTemplate()
+		transform := "AWS::Serverless-2016-10-31"
+		template.Transform = &cloudformation.Transform{String: &transform}
 
-		for key, pathItem := range doc.Paths {
-			fmt.Println("Key:", key)
+		for _, pathItem := range doc.Paths {
+			// fmt.Println("Key:", key)
 			for verb, operation := range pathItem.Operations() {
-				fmt.Println("Verb:", verb,"=>", "OperationID:", operation.OperationID)
+				// fmt.Println("Verb:", verb,"=>", "OperationID:", operation.OperationID)
 
-				template.Resources[strings.Title(operation.OperationID) + "Function"] = &serverless.Function{
-					Description: operation.Description, FunctionName: strings.Title(operation.OperationID),
-				}
-				
+				function, _ := util.GenerateServerlessFunction(verb, operation)
+				template.Resources[strings.Title(operation.OperationID) + "Function"] = function
+
 			}
 		}
 		// Output the YAML AWS CloudFormation template
