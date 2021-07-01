@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
-
+	"github.com/getkin/kin-openapi/openapi3"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -24,7 +24,24 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("root called")
+		loader := openapi3.NewLoader()
+		doc, err := loader.LoadFromFile("examples/petstore.yaml")
+		if err != nil {
+			panic(err)
+		}
+		err = doc.Validate(loader.Context)
+		if err != nil {
+			panic(err)
+		}
+		for key, pathItem := range doc.Paths {
+			fmt.Println("Key:", key)
+			for verb, operation := range pathItem.Operations() {
+				fmt.Println("Verb:", verb,"=>", "OperationID:", operation.OperationID)
+			}
+	}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
