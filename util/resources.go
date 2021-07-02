@@ -11,5 +11,5 @@ func GenerateServerlessFunction(verb string, operation *openapi3.Operation) (*se
 	function := &serverless.Function{
 		Description: operation.Description, FunctionName: strings.Title(operation.OperationID),
 	}
-	return function,nil
+	return function, nil
 }

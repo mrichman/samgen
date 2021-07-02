@@ -3,15 +3,10 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 
-	"github.com/awslabs/goformation/v5/cloudformation"
-	"github.com/getkin/kin-openapi/openapi3"
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/mrichman/samgen/util"
 )
 
 var cfgFile string
@@ -28,41 +23,9 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) {
+	// Run: func(cmd *cobra.Command, args []string) {
 		// fmt.Println("root called")
-		loader := openapi3.NewLoader()
-		doc, err := loader.LoadFromFile("examples/petstore.yaml")
-		if err != nil {
-			panic(err)
-		}
-		err = doc.Validate(loader.Context)
-		if err != nil {
-			panic(err)
-		}
-
-		// Create a new CloudFormation template
-		template := cloudformation.NewTemplate()
-		transform := "AWS::Serverless-2016-10-31"
-		template.Transform = &cloudformation.Transform{String: &transform}
-
-		for _, pathItem := range doc.Paths {
-			// fmt.Println("Key:", key)
-			for verb, operation := range pathItem.Operations() {
-				// fmt.Println("Verb:", verb,"=>", "OperationID:", operation.OperationID)
-
-				function, _ := util.GenerateServerlessFunction(verb, operation)
-				template.Resources[strings.Title(operation.OperationID) + "Function"] = function
-
-			}
-		}
-		// Output the YAML AWS CloudFormation template
-		y, err := template.YAML()
-		if err != nil {
-			fmt.Printf("Failed to generate YAML: %s\n", err)
-		} else {
-			fmt.Printf("%s\n", string(y))
-		}
-	},
+	// },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -73,15 +36,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.samgen.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
@@ -104,6 +59,9 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		_, err := fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		if err != nil {
+			panic(err)
+		}
 	}
 }
