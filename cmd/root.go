@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -15,7 +14,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "samgen",
 	Short: "samgen generates a SAM template from OpenAPI specs or an API Gateway REST API",
-	Long: "samgen generates a SAM template from OpenAPI specs or an API Gateway REST API",
+	Long:  "samgen generates a SAM template from OpenAPI specs or an API Gateway REST API",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -48,10 +47,12 @@ func initConfig() {
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		_, err := fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
-		if err != nil {
-			panic(err)
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found; ignore error if desired
+		} else {
+			// Config file was found but another error was produced
+			log.Fatalf("Fatal error config file: %v\n", err)
 		}
 	}
 }
