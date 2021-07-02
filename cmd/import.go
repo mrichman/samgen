@@ -15,17 +15,12 @@ import (
 var importCmd = &cobra.Command{
 	Use:   "import",
 	Short: "Import an existing API Gateway REST API",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long:  "Import an existing API Gateway REST API",
 	Run: func(cmd *cobra.Command, args []string) {
-		
+
 		apiId, _ := cmd.Flags().GetString("rest-api-id")
-		stageName, _ := cmd.Flags().GetString("stage-name")
-		export, _ := apigw.ExportRestApi(apiId, stageName)
+		stage, _ := cmd.Flags().GetString("stage")
+		export, _ := apigw.ExportRestApi(apiId, stage)
 
 		loader := openapi3.NewLoader()
 		doc, err := loader.LoadFromData(export)
