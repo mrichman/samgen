@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/awslabs/goformation/v5/cloudformation"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/mrichman/samgen/util"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -47,9 +47,9 @@ var specCmd = &cobra.Command{
 		// Output the YAML AWS CloudFormation template
 		y, err := template.YAML()
 		if err != nil {
-			fmt.Printf("Failed to generate YAML: %s\n", err)
+			log.Errorf("Failed to generate YAML: %s", err)
 		} else {
-			fmt.Printf("%s\n", string(y))
+			log.Errorf("%s\n", string(y))
 		}
 	},
 }

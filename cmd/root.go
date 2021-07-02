@@ -26,7 +26,6 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.samgen.yaml)")
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -52,7 +51,7 @@ func initConfig() {
 			// Config file not found; ignore error if desired
 		} else {
 			// Config file was found but another error was produced
-			log.Fatalf("Fatal error config file: %v\n", err)
+			log.Fatalf("Fatal error config file: %v", err)
 		}
 	}
 }

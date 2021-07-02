@@ -14,12 +14,12 @@ import (
 
 func ExportRestApi(apiId string, stage string) ([]byte, error) {
 
-	log.Infof("Exporting API %s stage %s\n", apiId, stage)
+	log.Infof("Exporting API %s stage %s", apiId, stage)
 
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 
 	if err != nil {
-		log.Fatalf("Unable to load AWS SDK config: %v\n", err)
+		log.Fatalf("Unable to load AWS SDK config: %v", err)
 	}
 	client := apigw.NewFromConfig(cfg)
 	output, err := client.GetExport(context.TODO(), &apigw.GetExportInput{
@@ -33,7 +33,7 @@ func ExportRestApi(apiId string, stage string) ([]byte, error) {
 	})
 
 	if err != nil {
-		log.Fatalf("Fatal error getting export from API Gateway: %v\n", err)
+		log.Fatalf("Fatal error getting export from API Gateway: %v", err)
 	}
 
 	log.Trace(string(output.Body))
