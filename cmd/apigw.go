@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -13,16 +14,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// importCmd represents the import command
-var importCmd = &cobra.Command{
-	Use:   "import",
+// apigwCmd represents the import command
+var apigwCmd = &cobra.Command{
+	Use:   "apigw",
 	Short: "Import an existing API Gateway REST API",
 	Long:  "Import an existing API Gateway REST API",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		apiId, _ := cmd.Flags().GetString("rest-api-id")
 		stage, _ := cmd.Flags().GetString("stage")
-		outfile, _ := cmd.Flags().GetString("output")
+		projectName, _ := cmd.Flags().GetString("project-name")
 		verbose, _ := cmd.Flags().GetBool("verbose")
 
 		if verbose {
@@ -42,6 +43,17 @@ var importCmd = &cobra.Command{
 			log.Fatalf("Could not validate Open API spec: %v", err)
 		}
 
+		// Create project directory
+		_, err = os.Stat(projectName)
+
+		if os.IsNotExist(err) {
+			errDir := os.MkdirAll(projectName, 0755)
+			if errDir != nil {
+				log.Fatal(err)
+			}
+
+		}
+
 		// Create a new CloudFormation template
 		template := cloudformation.NewTemplate()
 		transform := "AWS::Serverless-2016-10-31"
@@ -52,7 +64,12 @@ var importCmd = &cobra.Command{
 			for verb, operation := range pathItem.Operations() {
 				log.Debugf("Generating resource for: %s /%s", verb, operation.OperationID)
 				function, _ := util.GenerateServerlessFunction(verb, operation)
-				template.Resources[strings.Title(operation.OperationID)+"Function"] = function
+				functionName := strings.Title(operation.OperationID) + "Function"
+				template.Resources[functionName] = function
+
+				// Generate skeleton function in ./functions directory
+				newpath := filepath.Join(".", projectName, "functions", strings.Title(operation.OperationID))
+				util.WriteFunction(newpath)
 			}
 		}
 
@@ -62,6 +79,7 @@ var importCmd = &cobra.Command{
 			log.Fatalf("Failed to generate YAML: %s", err)
 		} else {
 			log.Tracef("%s", string(y))
+			outfile := filepath.Join(projectName, "template.yaml")
 			f, err := os.Create(outfile)
 			if err != nil {
 				log.Fatalf("Could not create file %s: %v", outfile, err)
@@ -77,12 +95,12 @@ var importCmd = &cobra.Command{
 }
 
 func init() {
-	importCmd.Flags().String("rest-api-id", "", "The string identifier of the associated RestApi (e.g. a1b2c3d4e5)")
-	importCmd.Flags().String("stage", "", "The name of the Stage that will be exported (e.g. prod)")
-	importCmd.Flags().String("output", "", "The filename to save the SAM template as (e.g. template.yaml)")
-	importCmd.PersistentFlags().Bool("verbose", false, "Verbose logging")
-	importCmd.MarkFlagRequired("rest-api-id")
-	importCmd.MarkFlagRequired("stage")
-	importCmd.MarkFlagRequired("output")
-	rootCmd.AddCommand(importCmd)
+	apigwCmd.Flags().String("rest-api-id", "", "The string identifier of the associated RestApi (e.g. a1b2c3d4e5)")
+	apigwCmd.Flags().String("stage", "", "The name of the Stage that will be exported (e.g. prod)")
+	apigwCmd.Flags().String("project-name", "", "The directory to save the project as")
+	apigwCmd.PersistentFlags().Bool("verbose", false, "Verbose logging")
+	apigwCmd.MarkFlagRequired("rest-api-id")
+	apigwCmd.MarkFlagRequired("stage")
+	apigwCmd.MarkFlagRequired("project-name")
+	rootCmd.AddCommand(apigwCmd)
 }
