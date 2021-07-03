@@ -11,7 +11,7 @@ import (
 func GenerateServerlessFunction(verb string, operation *openapi3.Operation) (*serverless.Function, error) {
 
 	events := map[string]serverless.Function_EventSource{
-		strings.ToTitle(verb) + "Resource": {
+		strings.Title(strings.ToLower(verb)) + "Resource": {
 			Type: "Api",
 			Properties: &serverless.Function_Properties{
 				ApiEvent: &serverless.Function_ApiEvent{
