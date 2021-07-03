@@ -15,5 +15,7 @@
 # vendor/
 
 .idea/
+.vscode/
 
+template.yaml
 samgen
