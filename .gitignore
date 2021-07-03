@@ -17,5 +17,6 @@
 .idea/
 .vscode/
 
+.DS_Store
 template.yaml
 samgen
