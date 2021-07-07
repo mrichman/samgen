@@ -7,6 +7,8 @@ WORKDIR /tmp/samgen
 COPY go.mod .
 COPY go.sum .
 
+# proxy.golang.org blocked on some corporate networks
+RUN go env -w GOPROXY=direct
 RUN go mod download
 
 COPY . .

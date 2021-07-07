@@ -68,7 +68,7 @@ var apigwCmd = &cobra.Command{
 				template.Resources[functionName] = function
 
 				// Generate skeleton function in ./functions directory
-				newpath := filepath.Join(".", projectName, "functions", strings.Title(operation.OperationID))
+				newpath := filepath.Join(".", projectName, "functions", operation.OperationID)
 				util.WriteFunction(newpath)
 			}
 		}
